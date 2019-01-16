@@ -15,6 +15,9 @@ namespace tpldf_samples
             await SimpleBlockSamples.CreateBlockAndPostMessagesAsync();
             SimpleBlockSamples.CreateTransformBlockAsync();
             await SimpleBlockSamples.CreateBatchBlockAndSendAndReceiveMessages();
+
+
+            await SimpleBackPressure.ExecuteSample();
         }
 
 
