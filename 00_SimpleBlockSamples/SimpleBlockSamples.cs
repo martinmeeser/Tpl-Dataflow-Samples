@@ -46,10 +46,9 @@ class SimpleBlockSamples
     /// <summary>
     /// A simple TransformBlock sample.
     /// </summary>
-    public static void CreateTransformBlockAsync()
+    public static async Task ExecuteTransformBlockSampleAsync()
     {
-        // note the left hand type and the right hand type
-        ITargetBlock<string> targetBlock = new TransformBlock<string, int?>((string s) =>
+        TransformBlock<string, int?> transformBlock = new TransformBlock<string, int?>((string s) =>
         {
             if (Int32.TryParse(s, out int result))
             {
@@ -57,9 +56,20 @@ class SimpleBlockSamples
             }
             return null; // I always use boxed types
         });
+
+        ITargetBlock<string> targetBlock = transformBlock;
+        targetBlock.Post("1");
+        targetBlock.Post("2");
+
+        ISourceBlock<int?> sourceBlock = transformBlock;
+        Console.WriteLine(sourceBlock.Receive());
+        Console.WriteLine(sourceBlock.Receive());
+
+        transformBlock.Complete();
+        await transformBlock.Completion;
     }
 
-    public static async Task CreateBatchBlockAndSendAndReceiveMessages()
+    public static async Task CreateBatchBlockAndSendAndReceiveMessagesAsync()
     {
         BatchBlock<string> batchBlock = new BatchBlock<string>(4);
         ISourceBlock<string[]> batchSourceBlock = batchBlock; // just to be clear ...

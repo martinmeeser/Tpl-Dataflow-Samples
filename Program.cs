@@ -12,12 +12,45 @@ namespace tpldf_samples
 
         static async Task MainAsync()
         {
+            // ************************************************
+            // ** you can follow the samples step by step in 
+            // ** the given order
+            // ************************************************
+
+
+
+            // ************************************************
+            // ** first set of samples is about the very basics,
+            // ** creating blocks, and sending and receiving 
+            // ** messages
+            // ************************************************
             await SimpleBlockSamples.CreateBlockAndPostMessagesAsync();
-            SimpleBlockSamples.CreateTransformBlockAsync();
-            await SimpleBlockSamples.CreateBatchBlockAndSendAndReceiveMessages();
+            await SimpleBlockSamples.ExecuteTransformBlockSampleAsync();
+            await SimpleBlockSamples.CreateBatchBlockAndSendAndReceiveMessagesAsync();
 
+            // ************************************************
+            // ** now check out how to link blocks to pass
+            // ** messages between them
+            // ************************************************
+            await LinkingFilteringAndBroadcast.ExecuteSimpleLinkWithFilterSampleAsync();
+            await LinkingFilteringAndBroadcast.ExecuteMultipleSuccessorsSampleAsync();
+            await LinkingFilteringAndBroadcast.ExecuteBroadcastSampleAsync();
 
-            await SimpleBackPressure.ExecuteSample();
+            // ************************************************
+            // ** next set of samples is about async-ness and
+            // ** parallism
+            // ************************************************
+            await AsyncBehaviorAndParallism.ExecuteSampleAsync();
+            await AsyncBehaviorAndParallism.ExecuteTaskParallismExample();
+
+            // ************************************************
+            // ** the next sample is about the way datablocks works
+            // ** in gernel, how to "think" when using datablocks
+
+            await SimpleBackPressure.ExecuteSampleAsync();
+
+            //await SimplePipeline.CreateSampleFile("/home/martin/sample.csv", 10000000, 10);
+
         }
 
 

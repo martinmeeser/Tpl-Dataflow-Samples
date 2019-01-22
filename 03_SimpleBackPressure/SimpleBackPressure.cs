@@ -5,7 +5,7 @@ using System.Threading.Tasks.Dataflow;
 public class SimpleBackPressure 
 {
     
-    public static async Task ExecuteSample() 
+    public static async Task ExecuteSampleAsync() 
     {
         BroadcastBlock<double> bc = new BroadcastBlock<double>(d=>d);
         
