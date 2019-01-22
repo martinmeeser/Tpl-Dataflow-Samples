@@ -44,9 +44,14 @@ namespace tpldf_samples
             await AsyncBehaviorAndParallism.ExecuteTaskParallismExample();
 
             // ************************************************
+            // ** now we take a look at data aggregation patterns with the batch block
+            await DataAggregation.ExecuteGreedyBatchBlockSampleAsync();
+
+
+            // ************************************************
             // ** the next sample is about the way datablocks works
             // ** in gernel, how to "think" when using datablocks
-
+            // ************************************************
             await SimpleBackPressure.ExecuteSampleAsync();
 
             //await SimplePipeline.CreateSampleFile("/home/martin/sample.csv", 10000000, 10);

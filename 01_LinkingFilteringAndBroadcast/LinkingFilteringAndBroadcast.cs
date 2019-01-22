@@ -7,41 +7,46 @@ public class LinkingFilteringAndBroadcast
 
     public static async Task ExecuteSimpleLinkWithFilterSampleAsync()
     {
-        TransformBlock<string, int?> transformBlock = new TransformBlock<string, int?>(
+        TransformBlock<string, int?> tb = new TransformBlock<string, int?>(
                 s =>
                 {
                     if (Int32.TryParse(s, out int result))
                     {
                         return result;
                     }
-                    else
-                        return null;
+                    return null;
                 });
 
 
-        ActionBlock<int?> actionBlock = new ActionBlock<int?>((int? i) =>
-        {
-            Console.WriteLine(i.HasValue ? i.Value.ToString() : "null");
-        });
+        ActionBlock<int?> ab1 = new ActionBlock<int?>(i => Console.WriteLine(i.ToString()));
 
         // ******************************
         // link the blocks (with a filter)
         // ******************************
-        transformBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true },
-            i => i.HasValue
-            );
+        tb.LinkTo(ab1, new DataflowLinkOptions { PropagateCompletion = true }, i => i.HasValue);
+        tb.LinkTo(DataflowBlock.NullTarget<int?>(), new DataflowLinkOptions { PropagateCompletion = true }, i => !i.HasValue); // if you remove this line, the sample can not complete, because the tb can not complete and thus not propagete its completion
 
-        transformBlock.Post("-1");
-        transformBlock.Post("-2");
-        transformBlock.Post("three");
+        tb.Post("-1");
+        tb.Post("-2");
+        tb.Post("three");
 
-        transformBlock.Complete();
-        await actionBlock.Completion;
+        tb.Complete();
+        //actionBlock.Complete(); // when you uncomment this line, you may see none, one, two or three lines of output, but most likely none
+        await ab1.Completion;
     }
 
+    ///<summary>
+    /// A litte helper method
+    ///</summary>
+    private static async Task WriteIntDelayed(int delay_ms, string name, int? i)
+    {
+        await Task.Delay(delay_ms);
+        await Console.Out.WriteLineAsync(name + "\t" + (i.HasValue ? i.ToString() : "null"));
+    }
+    private static int counter = 0;
     public static async Task ExecuteMultipleSuccessorsSampleAsync()
     {
-        TransformBlock<string, int?> transformBlock = new TransformBlock<string, int?>(
+        TransformBlock<string, int?> tb = new TransformBlock<string, int?>(
                     s =>
                     {
                         if (Int32.TryParse(s, out int result))
@@ -52,26 +57,33 @@ public class LinkingFilteringAndBroadcast
                             return null;
                     });
 
-        ActionBlock<int?> ab1 = new ActionBlock<int?>(async (int? i) => await WriteIntDelayed(10, "ab1", i));
+        ActionBlock<int?> ab1 = new ActionBlock<int?>(async (int? i) => await WriteIntDelayed(10, $"ab1[{counter++}]", i));
         ActionBlock<int?> ab2 = new ActionBlock<int?>(
             async (int? i)
-                => await WriteIntDelayed(500, "ab2", i)
+                => await WriteIntDelayed(500, $"ab2[{counter++}]", i)
             , new ExecutionDataflowBlockOptions { BoundedCapacity = 1 });
         ActionBlock<int?> ab3 = new ActionBlock<int?>(
             async (int? i)
-                => await WriteIntDelayed(200, "ab3", i),
+                => await WriteIntDelayed(200, $"ab3[{counter++}]", i),
             new ExecutionDataflowBlockOptions { BoundedCapacity = 1 });
 
-        transformBlock.LinkTo(ab1, new DataflowLinkOptions { MaxMessages = 10, PropagateCompletion = true });
-        transformBlock.LinkTo(ab2, new DataflowLinkOptions { PropagateCompletion = true });
-        transformBlock.LinkTo(ab3, new DataflowLinkOptions { PropagateCompletion = true });
+        tb.LinkTo(ab1, new DataflowLinkOptions { MaxMessages = 10, PropagateCompletion = true }); // when MaxMessages is reached, the block will be unlinked (propagetion will not work)
+        tb.LinkTo(ab2, new DataflowLinkOptions { PropagateCompletion = true });
+        tb.LinkTo(ab3, new DataflowLinkOptions { PropagateCompletion = true });
 
-        Parallel.For(0, 30, (i, state) =>
+
+        // Parallel.For(0, 30, (i, state) =>
+        // {
+        //     tb.Post(i.ToString());
+        // });
+
+        for (int i = 0; i < 30; i++)
         {
-            transformBlock.Post(i.ToString());
-        });
+            tb.Post(i.ToString());
+        }
 
-        transformBlock.Complete();
+        tb.Complete();
+        await tb.Completion.ContinueWith(t => ab1.Complete()); // since ab1 got unlinked after 10 messages, we must complete it manually (if you remove this line, the next line will never return)
         await Task.WhenAll(ab1.Completion, ab2.Completion, ab3.Completion);
     }
 
@@ -87,19 +99,12 @@ public class LinkingFilteringAndBroadcast
         bc.LinkTo(ab2, new DataflowLinkOptions { PropagateCompletion = true }, i => i.HasValue && i.Value > 15);
 
         bc.Post(5);         // this message will be "lost" "behind" the broadcast block, since there is no block accepting it
-        bc.Post(11);        // this message will override the before message
+        bc.Post(11);        // this message will override the before message and cause one line of output
         bc.Post(16);        // finally this message will cause two outputs at console
 
         bc.Complete();
         await Task.WhenAll(ab1.Completion, ab2.Completion);
     }
 
-    ///<summary>
-    /// A litte helper method
-    ///</summary>
-    private static async Task WriteIntDelayed(int delay_ms, string name, int? i)
-    {
-        await Task.Delay(delay_ms);
-        await Console.Out.WriteLineAsync(name + "\t" + (i.HasValue ? i.ToString() : "null"));
-    }
+
 }

@@ -6,11 +6,18 @@ using System.Threading.Tasks.Dataflow;
 public class DataAggregation
 {
 
-    public static async Task ExecuteGreedyBatchBlockSample()
+    public static async Task ExecuteGreedyBatchBlockSampleAsync()
     {
-        BatchBlock<string> batchBlock = new BatchBlock<string>(5, new GroupingDataflowBlockOptions() { Greedy = true });
+        BatchBlock<string> batchBlock = new BatchBlock<string>(
+                5, new GroupingDataflowBlockOptions() { Greedy = true }
+            );
 
-        var writer = new ActionBlock<string[]>(strings => strings.ToList().ForEach(str => Console.WriteLine(str)));
+        var writer = new ActionBlock<string[]>(
+            strings =>
+            {
+                strings.ToList().ForEach(str => Console.Write(str + ";"));
+                Console.WriteLine();
+            });
         batchBlock.LinkTo(writer, new DataflowLinkOptions() { PropagateCompletion = true });
 
         batchBlock.Post("1-1");
@@ -25,9 +32,30 @@ public class DataAggregation
         await batchBlock.Completion;
     }
 
-    public void ExecuteNonGreedyBatchBlockSample()
+    public async Task ExecuteNonGreedyBatchBlockSample()
     {
+        BatchBlock<string> batchBlock = new BatchBlock<string>(
+                        5, new GroupingDataflowBlockOptions() { Greedy = false }
+                    );
 
+        var writer = new ActionBlock<string[]>(
+            strings =>
+            {
+                strings.ToList().ForEach(str => Console.Write(str + ";"));
+                Console.WriteLine();
+            });
+        batchBlock.LinkTo(writer, new DataflowLinkOptions() { PropagateCompletion = true });
+
+        batchBlock.Post("1-1");
+        batchBlock.Post("1-2");
+        batchBlock.Post("1-3");
+        batchBlock.Post("2-1");
+        batchBlock.Post("3-1");
+        batchBlock.Post("4-1");
+        batchBlock.Post("5-1");
+
+        batchBlock.Complete();
+        await batchBlock.Completion;
     }
 
     public void ExecuteNonGreedyBatchBlockSampleWithBufferBlocks()
