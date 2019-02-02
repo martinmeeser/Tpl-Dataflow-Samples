@@ -27,9 +27,13 @@ public class LinkingFilteringAndBroadcast
         // ******************************
         // link the blocks (with a filter)
         // ******************************
-        transformBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true },
-            i => i.HasValue
-            );
+        transformBlock.LinkTo(
+            actionBlock
+            , new DataflowLinkOptions { PropagateCompletion = true }
+            ,i => i.HasValue);
+        
+        // if you remove this line, the block can not complete (because the null message will never be consumed)
+        transformBlock.LinkTo(DataflowBlock.NullTarget<int?>(), i=>!i.HasValue);
 
         transformBlock.Post("-1");
         transformBlock.Post("-2");
@@ -62,7 +66,7 @@ public class LinkingFilteringAndBroadcast
                 => await WriteIntDelayed(200, "ab3", i),
             new ExecutionDataflowBlockOptions { BoundedCapacity = 1 });
 
-        transformBlock.LinkTo(ab1, new DataflowLinkOptions { MaxMessages = 10, PropagateCompletion = true });
+        transformBlock.LinkTo(ab1, new DataflowLinkOptions { MaxMessages = 10, PropagateCompletion = true }); // after ten messages, the block gets unliked and no propagation will happen
         transformBlock.LinkTo(ab2, new DataflowLinkOptions { PropagateCompletion = true });
         transformBlock.LinkTo(ab3, new DataflowLinkOptions { PropagateCompletion = true });
 
@@ -72,6 +76,7 @@ public class LinkingFilteringAndBroadcast
         });
 
         transformBlock.Complete();
+        await transformBlock.Completion.ContinueWith(t=>ab1.Complete()); // without this line, the following line can not complete
         await Task.WhenAll(ab1.Completion, ab2.Completion, ab3.Completion);
     }
 
@@ -87,7 +92,7 @@ public class LinkingFilteringAndBroadcast
         bc.LinkTo(ab2, new DataflowLinkOptions { PropagateCompletion = true }, i => i.HasValue && i.Value > 15);
 
         bc.Post(5);         // this message will be "lost" "behind" the broadcast block, since there is no block accepting it
-        bc.Post(11);        // this message will override the before message
+        bc.Post(11);        // this message will override the previous message
         bc.Post(16);        // finally this message will cause two outputs at console
 
         bc.Complete();

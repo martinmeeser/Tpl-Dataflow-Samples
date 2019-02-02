@@ -26,7 +26,6 @@ namespace tpldf_samples
             // ************************************************
             await SimpleBlockSamples.CreateBlockAndPostMessagesAsync();
             await SimpleBlockSamples.ExecuteTransformBlockSampleAsync();
-            await SimpleBlockSamples.CreateBatchBlockAndSendAndReceiveMessagesAsync();
 
             // ************************************************
             // ** now check out how to link blocks to pass
