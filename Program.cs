@@ -24,28 +24,28 @@ namespace tpldf_samples
             // ** creating blocks, and sending and receiving 
             // ** messages
             // ************************************************
-            await SimpleBlockSamples.CreateBlockAndPostMessagesAsync();
-            await SimpleBlockSamples.ExecuteTransformBlockSampleAsync();
-            await SimpleBlockSamples.CreateBatchBlockAndSendAndReceiveMessagesAsync();
+            // await SimpleBlockSamples.CreateBlockAndPostMessagesAsync();
+            // await SimpleBlockSamples.ExecuteTransformBlockSampleAsync();
 
             // ************************************************
             // ** now check out how to link blocks to pass
             // ** messages between them
             // ************************************************
-            await LinkingFilteringAndBroadcast.ExecuteSimpleLinkWithFilterSampleAsync();
-            await LinkingFilteringAndBroadcast.ExecuteMultipleSuccessorsSampleAsync();
-            await LinkingFilteringAndBroadcast.ExecuteBroadcastSampleAsync();
+            // await LinkingFilteringAndBroadcast.ExecuteSimpleLinkWithFilterSampleAsync();
+            // await LinkingFilteringAndBroadcast.ExecuteMultipleSuccessorsSampleAsync();
+            // await LinkingFilteringAndBroadcast.ExecuteBroadcastSampleAsync();
 
             // ************************************************
             // ** next set of samples is about async-ness and
             // ** parallism
             // ************************************************
-            await AsyncBehaviorAndParallism.ExecuteSampleAsync();
-            await AsyncBehaviorAndParallism.ExecuteTaskParallismExample();
+            // await AsyncBehaviorAndParallism.ExecuteSampleAsync();
+            // await AsyncBehaviorAndParallism.ExecuteTaskParallismExample();
 
             // ************************************************
             // ** now we take a look at data aggregation patterns with the batch block
-            await DataAggregation.ExecuteGreedyBatchBlockSampleAsync();
+            await DataAggregation.ExecuteBatchBlockSampleAsync(isGready: true, batchSize: 5);
+            await DataAggregation.ExecuteBatchBlockSampleAsync(isGready: false, batchSize: 5);
 
 
             // ************************************************

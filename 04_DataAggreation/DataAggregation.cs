@@ -6,62 +6,54 @@ using System.Threading.Tasks.Dataflow;
 public class DataAggregation
 {
 
-    public static async Task ExecuteGreedyBatchBlockSampleAsync()
+    public static TransformBlock<int, string> CreateTransformBlock(int i)
     {
-        BatchBlock<string> batchBlock = new BatchBlock<string>(
-                5, new GroupingDataflowBlockOptions() { Greedy = true }
-            );
+        return new TransformBlock<int, string>(i2 => String.Format("{0}-{1}", i, i2));
+    }
 
-        var writer = new ActionBlock<string[]>(
+    public static async Task ExecuteBatchBlockSampleAsync(bool isGready, int batchSize)
+    {
+        Console.WriteLine($"BatchBlock isGready: {isGready}, batchSize: {batchSize}");
+
+        TransformBlock<int, string>[] tbs = new TransformBlock<int, string>[batchSize];
+        for (int i = 0; i < batchSize; i++)
+        {
+            tbs[i] = CreateTransformBlock(i);
+        }
+
+
+        BatchBlock<string> batchBlock = new BatchBlock<string>(
+                    batchSize, new GroupingDataflowBlockOptions() { Greedy = isGready }
+                );
+
+        ActionBlock<string[]> writer = new ActionBlock<string[]>(
             strings =>
             {
                 strings.ToList().ForEach(str => Console.Write(str + ";"));
                 Console.WriteLine();
             });
-        batchBlock.LinkTo(writer, new DataflowLinkOptions() { PropagateCompletion = true });
 
-        batchBlock.Post("1-1");
-        batchBlock.Post("1-2");
-        batchBlock.Post("1-3");
-        batchBlock.Post("2-1");
-        batchBlock.Post("3-1");
-        batchBlock.Post("4-1");
-        batchBlock.Post("5-1");
+        Array.ForEach(tbs, tb => tb.LinkTo(batchBlock));
+        batchBlock.LinkTo(writer, new DataflowLinkOptions { PropagateCompletion = true });
 
-        batchBlock.Complete();
-        await batchBlock.Completion;
-    }
-
-    public async Task ExecuteNonGreedyBatchBlockSample()
-    {
-        BatchBlock<string> batchBlock = new BatchBlock<string>(
-                        5, new GroupingDataflowBlockOptions() { Greedy = false }
-                    );
-
-        var writer = new ActionBlock<string[]>(
-            strings =>
+        for (int i = 0; i < batchSize; i++)
+        {
+            for (int j = 0; j < 3; j++)
             {
-                strings.ToList().ForEach(str => Console.Write(str + ";"));
-                Console.WriteLine();
-            });
-        batchBlock.LinkTo(writer, new DataflowLinkOptions() { PropagateCompletion = true });
+                tbs[i].Post(j);
+            }
+        }
 
-        batchBlock.Post("1-1");
-        batchBlock.Post("1-2");
-        batchBlock.Post("1-3");
-        batchBlock.Post("2-1");
-        batchBlock.Post("3-1");
-        batchBlock.Post("4-1");
-        batchBlock.Post("5-1");
 
+        Array.ForEach(tbs, tb => tb.Complete());
+        await Task.WhenAll(tbs.Select(tb => tb.Completion));
         batchBlock.Complete();
-        await batchBlock.Completion;
+        await writer.Completion;
     }
 
-    public void ExecuteNonGreedyBatchBlockSampleWithBufferBlocks()
-    {
 
-    }
+
+
 
 
 

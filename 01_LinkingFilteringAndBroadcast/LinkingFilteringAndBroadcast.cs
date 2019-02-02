@@ -23,8 +23,13 @@ public class LinkingFilteringAndBroadcast
         // ******************************
         // link the blocks (with a filter)
         // ******************************
-        tb.LinkTo(ab1, new DataflowLinkOptions { PropagateCompletion = true }, i => i.HasValue);
-        tb.LinkTo(DataflowBlock.NullTarget<int?>(), new DataflowLinkOptions { PropagateCompletion = true }, i => !i.HasValue); // if you remove this line, the sample can not complete, because the tb can not complete and thus not propagete its completion
+        tb.LinkTo(
+            ab1
+            , new DataflowLinkOptions { PropagateCompletion = true }
+            , i => i.HasValue);
+
+        // if you remove this line, the block can not complete (because the null message will never be consumed)
+        tb.LinkTo(DataflowBlock.NullTarget<int?>(), i => !i.HasValue);
 
         tb.Post("-1");
         tb.Post("-2");
@@ -67,10 +72,9 @@ public class LinkingFilteringAndBroadcast
                 => await WriteIntDelayed(200, $"ab3[{counter++}]", i),
             new ExecutionDataflowBlockOptions { BoundedCapacity = 1 });
 
-        tb.LinkTo(ab1, new DataflowLinkOptions { MaxMessages = 10, PropagateCompletion = true }); // when MaxMessages is reached, the block will be unlinked (propagetion will not work)
+        tb.LinkTo(ab1, new DataflowLinkOptions { MaxMessages = 10, PropagateCompletion = true }); // after ten messages, the block gets unliked and no propagation will happen
         tb.LinkTo(ab2, new DataflowLinkOptions { PropagateCompletion = true });
         tb.LinkTo(ab3, new DataflowLinkOptions { PropagateCompletion = true });
-
 
         // Parallel.For(0, 30, (i, state) =>
         // {
@@ -83,7 +87,7 @@ public class LinkingFilteringAndBroadcast
         }
 
         tb.Complete();
-        await tb.Completion.ContinueWith(t => ab1.Complete()); // since ab1 got unlinked after 10 messages, we must complete it manually (if you remove this line, the next line will never return)
+        await tb.Completion.ContinueWith(t => ab1.Complete()); // without this line, the following line can not complete
         await Task.WhenAll(ab1.Completion, ab2.Completion, ab3.Completion);
     }
 
@@ -99,7 +103,7 @@ public class LinkingFilteringAndBroadcast
         bc.LinkTo(ab2, new DataflowLinkOptions { PropagateCompletion = true }, i => i.HasValue && i.Value > 15);
 
         bc.Post(5);         // this message will be "lost" "behind" the broadcast block, since there is no block accepting it
-        bc.Post(11);        // this message will override the before message and cause one line of output
+        bc.Post(11);        // this message will override the previous message
         bc.Post(16);        // finally this message will cause two outputs at console
 
         bc.Complete();

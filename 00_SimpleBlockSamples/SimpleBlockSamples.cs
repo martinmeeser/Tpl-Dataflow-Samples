@@ -69,17 +69,4 @@ class SimpleBlockSamples
         await transformBlock.Completion;
     }
 
-    public static async Task CreateBatchBlockAndSendAndReceiveMessagesAsync()
-    {
-        BatchBlock<string> batchBlock = new BatchBlock<string>(4);
-        ISourceBlock<string[]> batchSourceBlock = batchBlock; // just to be clear ...
-
-        await SendDelayedMessageAsync("Hello", 100, batchBlock);
-        await SendDelayedMessageAsync("Data", 200, batchBlock);
-        await SendDelayedMessageAsync("Blocks", 400, batchBlock);
-        await SendDelayedMessageAsync("!", 100, batchBlock);
-
-        Console.WriteLine(batchBlock.Receive()); // one message  gets read from the outout queue, one message remains
-    }
-
 }

@@ -68,13 +68,13 @@ public class AsyncBehaviorAndParallism
 
     private static void WriteLine(string name, string s)
     {
-        Task.WaitAll(Task.Delay(1000));
+        Task.WaitAll(Task.Delay(200));
         Console.WriteLine($"{name}\t[ThreadId: {Thread.CurrentThread.ManagedThreadId}]\t{s}");
     }
 
     private static async Task WriteLineAsync(string name, string s)
     {
-        await Task.Delay(1000);
+        await Task.Delay(200);
         await Console.Out.WriteLineAsync($"{name}\t[ThreadId: {Thread.CurrentThread.ManagedThreadId}]\t{s}");
     }
 
