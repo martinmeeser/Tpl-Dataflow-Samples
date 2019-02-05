@@ -25,7 +25,7 @@ public class LinkingFilteringAndBroadcast
         // ******************************
         tb.LinkTo(
             ab1
-            , new DataflowLinkOptions { PropagateCompletion = true }
+            , new DataflowLinkOptions { PropagateCompletion = true, MaxMessages=10 }
             , i => i.HasValue);
 
         // if you remove this line, the block can not complete (because the null message will never be consumed)
