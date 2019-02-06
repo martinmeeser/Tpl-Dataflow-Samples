@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace tpldf_samples
@@ -53,7 +54,14 @@ namespace tpldf_samples
             // ************************************************
             await SimpleBackPressure.ExecuteSampleAsync();
 
-            //await SimplePipeline.CreateSampleFile("/home/martin/sample.csv", 10000000, 10);
+            // ************************************************
+            // ** the final sample is an examplary pipe line
+            // ************************************************
+            string path = Path.Combine(
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal),
+                "sample.csv");
+            // await SimplePipeline.CreateSampleCsvFile(path, 100000000, 10);
+            await SimplePipeline.ExecutePipelineSample(path);
 
         }
 
