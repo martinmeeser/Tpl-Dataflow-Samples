@@ -37,17 +37,17 @@ namespace tpldf_samples
             await LinkingFilteringAndBroadcast.ExecuteBroadcastSampleAsync();
 
             // ************************************************
+            // ** now we take a look at data aggregation patterns with the batch block
+            // ************************************************
+            await DataAggregation.ExecuteBatchBlockSampleAsync(isGready: true, batchSize: 5);
+            await DataAggregation.ExecuteBatchBlockSampleAsync(isGready: false, batchSize: 5);
+
+            // ************************************************
             // ** next set of samples is about async-ness and
             // ** parallism
             // ************************************************
             await AsyncBehaviorAndParallism.ExecuteSampleAsync();
             await AsyncBehaviorAndParallism.ExecuteTaskParallismExample();
-
-            // ************************************************
-            // ** now we take a look at data aggregation patterns with the batch block
-            // ************************************************
-            await DataAggregation.ExecuteBatchBlockSampleAsync(isGready: true, batchSize: 5);
-            await DataAggregation.ExecuteBatchBlockSampleAsync(isGready: false, batchSize: 5);
 
             // ************************************************
             // ** the next sample is about back pressure

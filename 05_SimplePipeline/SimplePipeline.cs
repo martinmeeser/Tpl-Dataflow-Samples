@@ -87,7 +87,7 @@ public class SimplePipeline
             {
                 string currLine;
                 Console.WriteLine($"Starting: {DateTime.Now}");
-                while ((currLine = streamReader.ReadLine()) != null)
+                while ((currLine = await streamReader.ReadLineAsync()) != null)
                 {
                     await splitStrings.SendAsync(currLine);
                 }
